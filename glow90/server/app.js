@@ -159,8 +159,9 @@ function createApp({ db, secureCookies = false, trustProxy = process.env.GLOW90_
     return { ok: true, stats: { done: st.done, total: st.total }, progress: prog?.progress, streak: core.computeStreak(db, ctx.uid, date) };
   });
   R('PUT', '/api/day/mode', (ctx) => {
-    const b = check({ type: 'object', required: ['mode'], properties: { mode: { type: 'string', enum: ['normal', 'minimum'] } } }, ctx.body);
-    const plan = needPlan(ctx.uid); const date = core.userToday(db, ctx.uid);
+    const b = check({ type: 'object', required: ['mode'], properties: { mode: { type: 'string', enum: ['normal', 'minimum'] }, date: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' } } }, ctx.body);
+    const plan = needPlan(ctx.uid); const today = core.userToday(db, ctx.uid);
+    const date = b.date && b.date <= today && b.date >= addDays(today, -3) ? b.date : today;
     if (date < plan.start_date || date > plan.end_date) throw bad('Plan dışı gün');
     core.setMode(db, ctx.uid, date, b.mode); track(ctx.uid, `mode_${b.mode}`);
     return { ok: true };
@@ -169,7 +170,9 @@ function createApp({ db, secureCookies = false, trustProxy = process.env.GLOW90_
   R('GET', '/api/checkin', (ctx) => { needPlan(ctx.uid); return core.checkinQuestions(db, ctx.uid, core.userToday(db, ctx.uid)); });
   R('POST', '/api/checkin', (ctx) => {
     const c = check(schemas.checkin, ctx.body); needPlan(ctx.uid);
-    const date = core.userToday(db, ctx.uid); // check-in her zaman "bugün" için
+    const today = core.userToday(db, ctx.uid);
+    // Çevrimdışı kuyruktan gelen check-in en fazla 3 gün geriye yazılabilir
+    const date = c.date && c.date <= today && c.date >= addDays(today, -3) && c.date >= needPlan(ctx.uid).start_date ? c.date : today;
     const st = core.saveCheckin(db, ctx.uid, date, c); const prog = core.saveSnapshot(db, ctx.uid, date); track(ctx.uid, 'checkin');
     return { ok: true, completion: Math.round(st.ratio * 100), progress: prog?.progress };
   });

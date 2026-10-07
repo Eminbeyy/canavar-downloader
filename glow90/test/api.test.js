@@ -139,3 +139,12 @@ test('bildirim planı: günde en fazla 3, check-in yapıldıysa hatırlatma yok'
   await c.post('/api/checkin', { sleep: 7, energy: 7 });
   assert.ok(!(await c.get('/api/notifications/plan')).body.items.some((i) => i.id === 'checkin'));
 });
+
+test('statik dosya: dizin dışına çıkılamaz, SPA fallback', async () => {
+  for (const p of ['/%2e%2e/server/db.js', '/..%2fserver%2fdb.js', '/js/../../server/db.js']) {
+    const res = await fetch(t.base + p); const body = await res.text();
+    assert.ok(!body.includes('DatabaseSync'), p);
+  }
+  assert.equal((await fetch(t.base + '/')).status, 200);
+  assert.equal((await fetch(t.base + '/sw.js')).status, 200);
+});

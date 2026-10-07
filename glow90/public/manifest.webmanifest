@@ -1,0 +1,2 @@
+{ "name": "GLOW90", "short_name": "GLOW90", "start_url": "/", "display": "standalone", "background_color": "#f4f3ef", "theme_color": "#0f7b5f",
+  "description": "90 günlük kişisel alışkanlık koçu", "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }] }
