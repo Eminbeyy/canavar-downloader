@@ -1,0 +1,22 @@
+# GLOW90 Render Blueprint. Dashboard: New → Blueprint → repo seç → "Blueprint Path" = glow90/render.yaml
+# (Kök render.yaml eski canavar-downloader servisine aittir; ona dokunma.)
+services:
+  - type: web
+    name: glow90
+    runtime: docker
+    branch: ccr-5950aa8d-crlsne   # main'e merge edince "main" yap
+    dockerfilePath: ./glow90/Dockerfile
+    dockerContext: ./glow90
+    region: oregon
+    plan: free                     # Ücretsiz planda disk yok: yeniden başlayınca veri silinir (deneme için uygun)
+    healthCheckPath: /api/health
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false                # Dashboard'da gir; boş bırakırsan koç kural tabanlı çalışır
+      - key: GLOW90_AI_DAILY_LIMIT
+        value: "30"
+    # Kalıcı veri için: plan'ı "starter" yap ve aşağıdaki satırların yorumunu kaldır
+    # disk:
+    #   name: glow90-data
+    #   mountPath: /data
+    #   sizeGB: 1
